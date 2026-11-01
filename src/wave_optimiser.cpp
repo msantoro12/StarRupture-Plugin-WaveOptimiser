@@ -295,7 +295,7 @@ namespace WaveOptimiser
         void* massEntitySubsystem = g_getSubsystemFn(world);
         if (!massEntitySubsystem)
             return nullptr;
-        return WaveOptimiserFields::EntityManagerOf(massEntitySubsystem);
+        return PluginMap::MassEntityManagerOf(massEntitySubsystem);
     }
 
     bool IsEntityValid(void* entityMgr, FMassEntityHandle handle)
