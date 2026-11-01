@@ -300,7 +300,7 @@ namespace HeatSampler
 
     void OnTick(float /*deltaSeconds*/)
     {
-        if (!s_helperCtor || !s_getEntityHandleFromActor)
+        if (!WaveOptimiserFields::HeatTools.On() || !s_helperCtor || !s_getEntityHandleFromActor)
             return;
 
         UWorld* world = PluginSdkRuntime::GetWorld();

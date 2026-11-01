@@ -36,10 +36,7 @@ static PluginInfo s_pluginInfo = {
 	PLUGIN_INTERFACE_VERSION,
 	WAVE_OPTIMISER_PLUGIN_TARGET,
 	PLUGIN_GAME_BUILT_CL,
-	// PLUGIN_MAP_MIGRATED is not set yet: it needs the loader's admission by built
-	// CL and the CI check of the used set. Until then the plugin runs only on
-	// the game build it was compiled for.
-	0
+	PLUGIN_MAP_MIGRATED
 };
 
 // The wave queue and the cached FMassEntityManager/subsystem pointers are
@@ -66,6 +63,7 @@ extern "C" {
 	{
 		g_self = self;
 
+		WaveOptimiserFields::DeclareFeatures(self, scanner);
 		WaveOptimiserFields::Resolve(self, scanner);
 		WaveOptimiser::ResolvePatterns(self, scanner);
 		HeatSampler::ResolvePatterns(self, scanner);
@@ -91,10 +89,8 @@ extern "C" {
 		if (!WaveOptimiserConfig::Config::IsEnabled())
 			LOG_WARN("Plugin is disabled in config file - wave batching inactive (hooks run in passthrough mode)");
 
-		LOG_DEBUG("Config: Enabled=%s MaxEntitiesPerTick=%d ShowDebugPanel=%s",
-			WaveOptimiserConfig::Config::IsEnabled() ? "true" : "false",
-			WaveOptimiserConfig::Config::GetMaxEntitiesPerTick(),
-			WaveOptimiserConfig::Config::GetShowDebugPanel() ? "true" : "false");
+		LOG_DEBUG("Config: Enabled=%s",
+			WaveOptimiserConfig::Config::IsEnabled() ? "true" : "false");
 
 		// Hooks and HeatSampler are installed regardless of the enabled toggle -
 		// the detours themselves check Config::IsEnabled() per-call and pass
