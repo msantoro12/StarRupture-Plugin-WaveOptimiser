@@ -36,25 +36,31 @@ namespace WaveOptimiserFields
 	inline auto ReplicationHelperActor = WAVE_OPTIMISER_FIELD(FCrMassActorReplicationHelper, Actor);
 	inline auto ReplicationHelperSize  = SR_SIZE_CHECK(FCrMassActorReplicationHelper);
 
+	// A TSharedPtr<T>: the object pointer and the shared reference controller.
+	struct SharedRef
+	{
+		void* Object;
+		void* Controller;
+	};
+	static_assert(sizeof(SharedRef) == 0x10, "a TSharedPtr is two pointers");
+
 	// UMassEntitySubsystem::EntityManager and UMassActorSubsystem::ActorManager
 	// are TSharedPtrs the Game-SDK folds into Pad_38 (not reflected), so there
 	// is no SDK name to take an offset from. A stale offset would read whatever
 	// now sits there, so on a build the loader has no row for, the plugin is
 	// refused instead.
-	// CL-127004: 0x38 for both; the layout diff lists no move on CL-128786. The
-	// rows below are this plugin's own until the loader's map carries them.
-	inline auto EntityManager = PluginField<void*>{ { "UMassEntitySubsystem::EntityManager",
-		"UMassEntitySubsystem", "EntityManager", PLUGIN_FIELD_NATIVE, sizeof(void*), 0x38 } };
-	inline auto ActorManager = PluginField<void*>{ { "UMassActorSubsystem::ActorManager",
-		"UMassActorSubsystem", "ActorManager", PLUGIN_FIELD_NATIVE, sizeof(void*), 0x38 } };
+	// CL-127004: 0x38 for both, 0x10 bytes. The rows below are this plugin's own
+	// until the loader's map carries them.
+	inline auto EntityManager = PluginField<SharedRef>{ { "UMassEntitySubsystem::EntityManager",
+		"UMassEntitySubsystem", "EntityManager", PLUGIN_FIELD_NATIVE, sizeof(SharedRef), 0x38 } };
+	inline auto ActorManager = PluginField<SharedRef>{ { "UMassActorSubsystem::ActorManager",
+		"UMassActorSubsystem", "ActorManager", PLUGIN_FIELD_NATIVE, sizeof(SharedRef), 0x38 } };
 
 	inline const PluginFieldCandidate kEntityManagerRows[] = {
-		{ 127004, 0x38, static_cast<uint32_t>(sizeof(void*)), 0, nullptr },
-		{ 128786, 0x38, static_cast<uint32_t>(sizeof(void*)), 0, nullptr },
+		{ 127004, 0x38, static_cast<uint32_t>(sizeof(SharedRef)), 0, nullptr },
 	};
 	inline const PluginFieldCandidate kActorManagerRows[] = {
-		{ 127004, 0x38, static_cast<uint32_t>(sizeof(void*)), 0, nullptr },
-		{ 128786, 0x38, static_cast<uint32_t>(sizeof(void*)), 0, nullptr },
+		{ 127004, 0x38, static_cast<uint32_t>(sizeof(SharedRef)), 0, nullptr },
 	};
 
 	// Asks the loader for every row above. False when any did not resolve; the
@@ -74,15 +80,15 @@ namespace WaveOptimiserFields
 	// subsystem is null or the member did not resolve.
 	inline void* EntityManagerOf(const void* subsystem)
 	{
-		void* const* at = EntityManager.In(subsystem);
-		return at ? *at : nullptr;
+		const SharedRef* at = EntityManager.In(subsystem);
+		return at ? at->Object : nullptr;
 	}
 
 	// The FMassActorManager* a UMassActorSubsystem holds, or null.
 	inline void* ActorManagerOf(const void* subsystem)
 	{
-		void* const* at = ActorManager.In(subsystem);
-		return at ? *at : nullptr;
+		const SharedRef* at = ActorManager.In(subsystem);
+		return at ? at->Object : nullptr;
 	}
 
 	// The live actor an FMassActorFragment points at, or null.
