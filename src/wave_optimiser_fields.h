@@ -63,6 +63,32 @@ namespace WaveOptimiserFields
 		{ 127004, 0x38, static_cast<uint32_t>(sizeof(SharedRef)), 0, nullptr },
 	};
 
+	// The parts of the plugin that can be off while the rest runs. The heat
+	// tools reuse the batching side's entity manager, fragment lookup and heat
+	// member, so those keys sit in both lists. SignalEntities is shared too.
+	inline PluginMap::Feature WaveBatching{ "batching", "Rupture heat batching",
+		{ "UCrWaveSubsystem::AddEntitiesToWave", "UCrWaveSubsystem::RemoveEntitiesFromWave",
+		  "UWorld::GetSubsystem<UMassEntitySubsystem>", "UCrBuildingFunctionLibrary::AddTemperatureToEntity",
+		  "FMassEntityManager::InternalGetFragmentDataPtr", "FMassEntityManager::IsEntityValid",
+		  "UMassSignalSubsystem::SignalEntities", "UMassEntitySubsystem::EntityManager",
+		  "FCrMassTemperatureFragment::CurrentHeat", "FCrMassTemperatureFragment::LastUpdateTime",
+		  "FMassActorFragment::Actor" },
+		{ "WaveOptimiser.MaxEntitiesPerTick" } };
+	inline PluginMap::Feature HeatTools{ "heat-tools", "Heat reset and heat readout under the cursor",
+		{ "FCrMassActorReplicationHelper::FCrMassActorReplicationHelper",
+		  "FMassActorManager::GetEntityHandleFromActor", "UMassSignalSubsystem::SignalEntities",
+		  "UWorld::GetSubsystem<UMassEntitySubsystem>", "FMassEntityManager::InternalGetFragmentDataPtr",
+		  "UMassEntitySubsystem::EntityManager", "UMassActorSubsystem::ActorManager",
+		  "FCrMassActorReplicationHelper::Actor", "FCrMassActorReplicationHelper",
+		  "FCrMassTemperatureFragment::CurrentHeat", "FMassActorFragment::Actor" },
+		{} };
+
+	// Call before Resolve, so a miss lands on a feature and not on the plugin.
+	inline void DeclareFeatures(IPluginSelf* self, IPluginHookScanner* scanner)
+	{
+		PluginMap::DeclareFeatures(scanner, self, WaveBatching, HeatTools);
+	}
+
 	// Asks the loader for every row above. False when any did not resolve; the
 	// loader has then recorded the failure and refuses the plugin.
 	inline bool Resolve(IPluginSelf* self, IPluginHookScanner* scanner)

@@ -66,6 +66,7 @@ extern "C" {
 	{
 		g_self = self;
 
+		WaveOptimiserFields::DeclareFeatures(self, scanner);
 		WaveOptimiserFields::Resolve(self, scanner);
 		WaveOptimiser::ResolvePatterns(self, scanner);
 		HeatSampler::ResolvePatterns(self, scanner);
@@ -91,10 +92,8 @@ extern "C" {
 		if (!WaveOptimiserConfig::Config::IsEnabled())
 			LOG_WARN("Plugin is disabled in config file - wave batching inactive (hooks run in passthrough mode)");
 
-		LOG_DEBUG("Config: Enabled=%s MaxEntitiesPerTick=%d ShowDebugPanel=%s",
-			WaveOptimiserConfig::Config::IsEnabled() ? "true" : "false",
-			WaveOptimiserConfig::Config::GetMaxEntitiesPerTick(),
-			WaveOptimiserConfig::Config::GetShowDebugPanel() ? "true" : "false");
+		LOG_DEBUG("Config: Enabled=%s",
+			WaveOptimiserConfig::Config::IsEnabled() ? "true" : "false");
 
 		// Hooks and HeatSampler are installed regardless of the enabled toggle -
 		// the detours themselves check Config::IsEnabled() per-call and pass

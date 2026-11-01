@@ -735,6 +735,12 @@ namespace WaveOptimiser
 
     bool Init(IPluginSelf* self)
     {
+        if (!WaveOptimiserFields::WaveBatching.On())
+        {
+            LOG_WARN("WaveOptimiser: rupture heat batching is off - the game update moved something it needs");
+            return false;
+        }
+
         const uintptr_t addAddr = g_addrAddEntitiesToWave;
         if (!addAddr)
         {
@@ -854,6 +860,9 @@ namespace WaveOptimiser
 
     void OnTick(float /*deltaSeconds*/)
     {
+        if (!WaveOptimiserFields::WaveBatching.On())
+            return;
+
         // Lazily resolve FMassEntityManager* — stable after the first wave fires
         // and g_cachedWaveSubsystem is populated by Detour_AddEntitiesToWave.
         if (!g_cachedEntityMgr && g_cachedWaveSubsystem)
