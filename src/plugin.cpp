@@ -4,6 +4,7 @@
 #include "wave_optimiser.h"
 #include "wave_optimiser_ui.h"
 #include "heat_sampler.h"
+#include "wave_optimiser_fields.h"
 
 // Global plugin self pointer — stable for the plugin's lifetime, retained from PluginInit
 static IPluginSelf* g_self = nullptr;
@@ -33,7 +34,12 @@ static PluginInfo s_pluginInfo = {
 	"AlienX",
 	"Optimises wave/horde spawning in StarRupture",
 	PLUGIN_INTERFACE_VERSION,
-	WAVE_OPTIMISER_PLUGIN_TARGET
+	WAVE_OPTIMISER_PLUGIN_TARGET,
+	PLUGIN_GAME_BUILT_CL,
+	// PLUGIN_MAP_MIGRATED is not set yet: it needs the loader's admission by built
+	// CL and the CI check of the used set. Until then the plugin runs only on
+	// the game build it was compiled for.
+	0
 };
 
 // The wave queue and the cached FMassEntityManager/subsystem pointers are
@@ -60,12 +66,17 @@ extern "C" {
 	{
 		g_self = self;
 
+		WaveOptimiserFields::Resolve(self, scanner);
 		WaveOptimiser::ResolvePatterns(self, scanner);
 		HeatSampler::ResolvePatterns(self, scanner);
 	}
 
 	__declspec(dllexport) bool PluginInit(IPluginSelf* self)
 	{
+		// First, before any early return: off its game build the loader refuses
+		// a plugin whose PluginInit did not take the globals.
+		PluginSdkRuntime::Init(self->hooks);
+
 		// Store the plugin self pointer — valid for the plugin's entire lifetime
 		g_self = self;
 
