@@ -1,0 +1,1 @@
+When a game update moves data the plugin reads, it turns off the heat tools instead of the whole plugin
